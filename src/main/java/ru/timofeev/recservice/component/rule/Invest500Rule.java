@@ -18,7 +18,7 @@ public class Invest500Rule implements RecommendationRule {
         boolean checks =
                 transactionsRepository.hasProductType(userId, "DEBIT")
                         && !transactionsRepository.hasProductType(userId, "INVEST")
-                        && transactionsRepository.getAmountForProduct(userId, "SAVING") > 1000;
+                        && transactionsRepository.getAmountForProduct(userId, "SAVING", "DEPOSIT") > 1000;
 
         return checks ? Optional.of("Invest500") : Optional.empty();
     }
