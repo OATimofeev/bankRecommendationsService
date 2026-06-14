@@ -1,19 +1,24 @@
 package ru.timofeev.recservice.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Data
+@Builder
 public class GetRecommendationResponseDto {
 
     private UUID userId;
-    private List<RecommendationDto> recommendations;
+    @Builder.Default
+    private List<RecommendationDto> recommendations = new ArrayList<>();
 
     @Data
+    @Builder
     @NoArgsConstructor
     @AllArgsConstructor
     public static class RecommendationDto {
