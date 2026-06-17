@@ -3,6 +3,8 @@ package ru.timofeev.recservice.repository;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import ru.timofeev.recservice.model.enums.ProductTypeEnum;
+import ru.timofeev.recservice.model.enums.TransactionTypeEnum;
 
 import java.util.UUID;
 
@@ -14,7 +16,7 @@ public class TransactionsRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public Boolean hasProductType(UUID userId, String productType) {
+    public Boolean hasProductType(UUID userId, ProductTypeEnum productType) {
         return jdbcTemplate.queryForObject("""
                         SELECT EXISTS (
                             SELECT 1
@@ -30,7 +32,7 @@ public class TransactionsRepository {
         );
     }
 
-    public Integer getAmountForProduct(UUID userId, String productType, String transactionType) {
+    public Integer getAmountForProduct(UUID userId, ProductTypeEnum productType, TransactionTypeEnum transactionType) {
         return jdbcTemplate.queryForObject("""
                         SELECT SUM(t.AMOUNT)
                              FROM TRANSACTIONS t
