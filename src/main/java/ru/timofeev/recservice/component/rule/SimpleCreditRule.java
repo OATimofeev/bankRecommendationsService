@@ -2,6 +2,8 @@ package ru.timofeev.recservice.component.rule;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+import ru.timofeev.recservice.model.enums.ProductTypeEnum;
+import ru.timofeev.recservice.model.enums.TransactionTypeEnum;
 import ru.timofeev.recservice.repository.TransactionsRepository;
 
 import java.util.Optional;
@@ -16,9 +18,9 @@ public class SimpleCreditRule implements RecommendationRule {
     @Override
     public Optional<String> apply(UUID userId) {
         boolean checks =
-                !transactionsRepository.hasProductType(userId, "CREDIT")
-                        && (transactionsRepository.getAmountForProduct(userId, "DEBIT", "DEPOSIT") > transactionsRepository.getAmountForProduct(userId, "DEBIT", "WITHDRAW"))
-                        && transactionsRepository.getAmountForProduct(userId, "DEBIT", "WITHDRAW") > 100000;
+                !transactionsRepository.hasProductType(userId, ProductTypeEnum.CREDIT)
+                        && (transactionsRepository.getAmountForProduct(userId, ProductTypeEnum.DEBIT, TransactionTypeEnum.DEPOSIT) > transactionsRepository.getAmountForProduct(userId, ProductTypeEnum.DEBIT, TransactionTypeEnum.WITHDRAW))
+                        && transactionsRepository.getAmountForProduct(userId, ProductTypeEnum.DEBIT, TransactionTypeEnum.WITHDRAW) > 100000;
 
         return checks ? Optional.of("SimpleCredit") : Optional.empty();
     }

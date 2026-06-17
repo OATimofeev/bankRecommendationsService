@@ -2,6 +2,8 @@ package ru.timofeev.recservice.component.rule;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+import ru.timofeev.recservice.model.enums.ProductTypeEnum;
+import ru.timofeev.recservice.model.enums.TransactionTypeEnum;
 import ru.timofeev.recservice.repository.TransactionsRepository;
 
 import java.util.Optional;
@@ -16,9 +18,9 @@ public class Invest500Rule implements RecommendationRule {
     @Override
     public Optional<String> apply(UUID userId) {
         boolean checks =
-                transactionsRepository.hasProductType(userId, "DEBIT")
-                        && !transactionsRepository.hasProductType(userId, "INVEST")
-                        && transactionsRepository.getAmountForProduct(userId, "SAVING", "DEPOSIT") > 1000;
+                transactionsRepository.hasProductType(userId, ProductTypeEnum.DEBIT)
+                        && !transactionsRepository.hasProductType(userId, ProductTypeEnum.INVEST)
+                        && transactionsRepository.getAmountForProduct(userId, ProductTypeEnum.SAVING, TransactionTypeEnum.DEPOSIT) > 1000;
 
         return checks ? Optional.of("Invest500") : Optional.empty();
     }
