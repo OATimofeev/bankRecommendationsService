@@ -1,51 +1,12 @@
 package ru.timofeev.recservice.repository;
 
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import ru.timofeev.recservice.model.RecommendationModel;
+import ru.timofeev.recservice.model.enums.RecommendationRuleType;
 
 import java.util.List;
-import java.util.UUID;
 
-@Repository
-public class RecommendationsRepository {
+public interface RecommendationsRepository extends JpaRepository<RecommendationModel, Long> {
 
-    private final JdbcTemplate jdbcTemplate;
-
-    public RecommendationsRepository(@Qualifier("recommendationsJdbcTemplate") JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
-
-    public List<RecommendationModel> findAll() {
-        return jdbcTemplate.query("""
-                SELECT * FROM recommendations
-                """, (rs, rowNum) ->
-                RecommendationModel
-                        .builder()
-                        .id(rs.getObject("id", UUID.class))
-                        .name(rs.getString("name"))
-                        .description(rs.getString("description"))
-                        .ruleSet(rs.getString("rule_set"))
-                        .ruleCode(rs.getString("rule_code"))
-                        .build()
-        );
-    }
-
-    public RecommendationModel getRecommendationByRuleCode(String ruleCode) {
-        return jdbcTemplate.queryForObject("""
-                        SELECT * FROM recommendations WHERE rule_code = ?
-                        """, (rs, rowNum) ->
-                        RecommendationModel
-                                .builder()
-                                .id(rs.getObject("id", UUID.class))
-                                .name(rs.getString("name"))
-                                .description(rs.getString("description"))
-                                .ruleSet(rs.getString("rule_set"))
-                                .ruleCode(rs.getString("rule_code"))
-                                .build(),
-                ruleCode
-        );
-    }
-
+    List<RecommendationModel> findAllByRuleType(RecommendationRuleType ruleType);
 }

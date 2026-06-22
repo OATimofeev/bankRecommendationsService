@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.timofeev.recservice.model.enums.ProductTypeEnum;
 import ru.timofeev.recservice.model.enums.TransactionTypeEnum;
+import ru.timofeev.recservice.repository.records.DepositWithdrawSums;
 
 import java.util.UUID;
 
@@ -16,7 +17,7 @@ public class TransactionsRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public Boolean hasProductType(UUID userId, ProductTypeEnum productType) {
+    public boolean hasProductType(UUID userId, ProductTypeEnum productType) {
         return jdbcTemplate.queryForObject("""
                         SELECT EXISTS (
                             SELECT 1
@@ -28,7 +29,39 @@ public class TransactionsRepository {
                         """,
                 Boolean.class,
                 userId,
-                productType
+                productType.name()
+        );
+    }
+
+    public boolean isActiveUserOfProductType(UUID userId, ProductTypeEnum productType) {
+        return jdbcTemplate.queryForObject("""
+                        SELECT COUNT(T.ID) >= 5 FROM TRANSACTIONS T
+                        JOIN PRODUCTS P ON T.PRODUCT_ID = P.ID
+                        WHERE T.USER_ID = ?
+                        AND P.TYPE = ?
+                        """,
+                Boolean.class,
+                userId,
+                productType.name()
+        );
+    }
+
+    public DepositWithdrawSums getDepositWithdrawSums(UUID userId, ProductTypeEnum productType) {
+        return jdbcTemplate.queryForObject("""
+                        SELECT
+                            COALESCE(SUM(CASE WHEN T.TYPE = 'DEPOSIT' THEN T.AMOUNT ELSE 0 END), 0) AS deposit_sum,
+                            COALESCE(SUM(CASE WHEN T.TYPE = 'WITHDRAW' THEN T.AMOUNT ELSE 0 END), 0) AS withdraw_sum
+                        FROM TRANSACTIONS T
+                        JOIN PRODUCTS P ON T.PRODUCT_ID = P.ID
+                        WHERE T.USER_ID = ?
+                          AND P.TYPE = ?
+                        """,
+                (rs, rowNum) -> new DepositWithdrawSums(
+                        rs.getInt("deposit_sum"),
+                        rs.getInt("withdraw_sum")
+                ),
+                userId,
+                productType.name()
         );
     }
 
@@ -43,8 +76,9 @@ public class TransactionsRepository {
                         """,
                 Integer.class,
                 userId,
-                productType,
-                transactionType
+                productType.name(),
+                transactionType.name()
         );
     }
+
 }

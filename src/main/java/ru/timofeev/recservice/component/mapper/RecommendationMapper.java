@@ -12,6 +12,7 @@ public class RecommendationMapper {
                 .builder()
                 .name(model.getName())
                 .text(model.getDescription())
+                .productId(model.getProductId())
                 .id(model.getId())
                 .build();
     }

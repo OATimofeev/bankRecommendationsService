@@ -55,3 +55,62 @@ VALUES ('ab138afb-f3ba-4a93-b74f-0fcee86d447f',
     Сумма пополнений по всем продуктам типа DEBIT больше, чем сумма трат по всем продуктам типа DEBIT.
     Сумма трат по всем продуктам типа DEBIT больше, чем 100 000 ₽.',
         'SimpleCredit');
+
+-- changeset OATimofeev:005-reset-recommendations-table
+ALTER TABLE recommendations
+DROP
+CONSTRAINT recommendations_pkey;
+
+ALTER TABLE recommendations
+    RENAME COLUMN id TO product_id;
+
+ALTER TABLE recommendations
+    ADD COLUMN id BIGINT;
+
+CREATE SEQUENCE IF NOT EXISTS recommendations_id_seq;
+
+ALTER TABLE recommendations
+    ALTER COLUMN id SET DEFAULT nextval('recommendations_id_seq');
+
+UPDATE recommendations
+SET id = nextval('recommendations_id_seq')
+WHERE id IS NULL;
+
+ALTER TABLE recommendations
+    ALTER COLUMN id SET NOT NULL;
+
+ALTER TABLE recommendations
+    ADD CONSTRAINT recommendations_pkey PRIMARY KEY (id);
+
+ALTER TABLE recommendations
+DROP
+COLUMN rule_code;
+
+ALTER TABLE recommendations
+ALTER
+COLUMN rule_set TYPE jsonb
+    USING to_jsonb(rule_set);
+
+ALTER SEQUENCE recommendations_id_seq
+    OWNED BY recommendations.id;
+
+-- changeset OATimofeev:006-add-rule-type-column
+CREATE TYPE recommendation_rule_type AS ENUM ('STATIC', 'DYNAMIC');
+
+ALTER TABLE recommendations
+    ADD COLUMN rule_type recommendation_rule_type;
+
+UPDATE recommendations
+SET rule_type = 'STATIC'
+WHERE rule_type IS NULL;
+
+ALTER TABLE recommendations
+    ALTER COLUMN rule_type SET DEFAULT 'DYNAMIC';
+
+ALTER TABLE recommendations
+    ALTER COLUMN rule_type SET NOT NULL;
+
+-- changeset OATimofeev:007-change-rule-set-for-static-rules
+UPDATE recommendations
+SET rule_set = '[]'
+WHERE rule_type = 'STATIC';

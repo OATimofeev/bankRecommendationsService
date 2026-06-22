@@ -9,6 +9,7 @@ import ru.timofeev.recservice.repository.TransactionsRepository;
 import java.util.Optional;
 import java.util.UUID;
 
+@Deprecated
 @Component
 @AllArgsConstructor
 public class TopSavingRule implements RecommendationRule {
@@ -16,13 +17,13 @@ public class TopSavingRule implements RecommendationRule {
     private final TransactionsRepository transactionsRepository;
 
     @Override
-    public Optional<String> apply(UUID userId) {
+    public Optional<Long> apply(UUID userId) {
         boolean checks =
                 transactionsRepository.hasProductType(userId, ProductTypeEnum.DEBIT)
                         && (transactionsRepository.getAmountForProduct(userId, ProductTypeEnum.DEBIT, TransactionTypeEnum.DEPOSIT) >= 50000
                         || transactionsRepository.getAmountForProduct(userId, ProductTypeEnum.SAVING, TransactionTypeEnum.DEPOSIT) >= 50000)
                         && (transactionsRepository.getAmountForProduct(userId, ProductTypeEnum.DEBIT, TransactionTypeEnum.DEPOSIT) > transactionsRepository.getAmountForProduct(userId, ProductTypeEnum.DEBIT, TransactionTypeEnum.WITHDRAW));
 
-        return checks ? Optional.of("TopSaving") : Optional.empty();
+        return checks ? Optional.of(3L) : Optional.empty();
     }
 }
