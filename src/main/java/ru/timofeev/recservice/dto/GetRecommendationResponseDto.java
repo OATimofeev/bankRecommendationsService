@@ -22,7 +22,8 @@ public class GetRecommendationResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class RecommendationDto {
-        private UUID id;
+        private Long id;
+        private UUID productId;
         private String name;
         private String text;
     }
