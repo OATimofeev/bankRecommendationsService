@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.timofeev.recservice.component.dynamicRule.QueryType;
 import ru.timofeev.recservice.model.enums.ProductTypeEnum;
+import ru.timofeev.recservice.model.enums.TransactionTypeEnum;
 import ru.timofeev.recservice.repository.TransactionsRepository;
-import ru.timofeev.recservice.repository.records.DepositWithdrawSums;
 
 import java.util.List;
 import java.util.UUID;
@@ -27,8 +27,10 @@ public class TransactionSumCompareDepositWithdrawHandler implements RuleConditio
         RuleParseUtil.checkArgsSize(arguments, 2, QueryType.TRANSACTION_SUM_COMPARE_DEPOSIT_WITHDRAW.toString());
         ProductTypeEnum productType = RuleParseUtil.parseProductType(arguments.get(0));
         String operation = RuleParseUtil.parseComparisonOperation(arguments.get(1));
-        DepositWithdrawSums sums = transactionsRepository.getDepositWithdrawSums(userId, productType);
 
-        return RuleParseUtil.compare(sums.depositSum(), operation, sums.withdrawSum());
+        return RuleParseUtil.compare(
+                transactionsRepository.getAmountForProduct(userId, productType, TransactionTypeEnum.DEPOSIT),
+                operation,
+                transactionsRepository.getAmountForProduct(userId, productType, TransactionTypeEnum.WITHDRAW));
     }
 }
