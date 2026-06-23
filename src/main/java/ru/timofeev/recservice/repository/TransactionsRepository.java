@@ -5,7 +5,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.timofeev.recservice.model.enums.ProductTypeEnum;
 import ru.timofeev.recservice.model.enums.TransactionTypeEnum;
-import ru.timofeev.recservice.repository.records.DepositWithdrawSums;
 
 import java.util.UUID;
 
@@ -41,25 +40,6 @@ public class TransactionsRepository {
                         AND P.TYPE = ?
                         """,
                 Boolean.class,
-                userId,
-                productType.name()
-        );
-    }
-
-    public DepositWithdrawSums getDepositWithdrawSums(UUID userId, ProductTypeEnum productType) {
-        return jdbcTemplate.queryForObject("""
-                        SELECT
-                            COALESCE(SUM(CASE WHEN T.TYPE = 'DEPOSIT' THEN T.AMOUNT ELSE 0 END), 0) AS deposit_sum,
-                            COALESCE(SUM(CASE WHEN T.TYPE = 'WITHDRAW' THEN T.AMOUNT ELSE 0 END), 0) AS withdraw_sum
-                        FROM TRANSACTIONS T
-                        JOIN PRODUCTS P ON T.PRODUCT_ID = P.ID
-                        WHERE T.USER_ID = ?
-                          AND P.TYPE = ?
-                        """,
-                (rs, rowNum) -> new DepositWithdrawSums(
-                        rs.getInt("deposit_sum"),
-                        rs.getInt("withdraw_sum")
-                ),
                 userId,
                 productType.name()
         );
