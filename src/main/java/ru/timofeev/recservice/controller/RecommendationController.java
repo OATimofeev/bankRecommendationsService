@@ -19,7 +19,7 @@ public class RecommendationController {
     private final RecommendationProductsService recommendationProductsService;
 
     @GetMapping
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Получить все рекомендации для пользователя")
     @ApiResponse(responseCode = "200", description = "Список получен")
     public ResponseEntity<GetRecommendationResponseDto> get(@RequestParam UUID userId) {
