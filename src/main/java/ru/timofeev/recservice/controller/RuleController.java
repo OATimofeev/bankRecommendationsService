@@ -22,7 +22,7 @@ public class RuleController {
     private final RecommendationRuleService recommendationRuleService;
 
     @GetMapping
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Получить все динамические продукты")
     @ApiResponse(responseCode = "200", description = "Список получен")
     public ResponseEntity<GetRuleResponseDto> get() {
@@ -30,7 +30,7 @@ public class RuleController {
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Создать новый продукт")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Продукт успешно создан"),
