@@ -6,10 +6,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import ru.timofeev.recservice.model.UserModel;
 import ru.timofeev.recservice.model.enums.ProductTypeEnum;
 import ru.timofeev.recservice.model.enums.TransactionTypeEnum;
 
 import java.time.Duration;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -35,6 +38,12 @@ public class TransactionsRepository {
             .recordStats()
             .build();
 
+    private final Cache<UserKey, Optional<UserModel>> getUserIdCache = Caffeine.newBuilder()
+            .maximumSize(1_000)
+            .expireAfterWrite(Duration.ofMinutes(10))
+            .recordStats()
+            .build();
+
     public TransactionsRepository(@Qualifier("transactionsJdbcTemplate") JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -55,6 +64,11 @@ public class TransactionsRepository {
         AmountOfProductKey key = new AmountOfProductKey(userId, productType, transactionType);
         Integer result = amountForProductCache.get(key, this::loadGetAmountForProduct);
         return result != null ? result : 0;
+    }
+
+    public Optional<UserModel> getUserByUsername(String userName) {
+        UserKey key = new UserKey(userName);
+        return getUserIdCache.get(key, this::loadGetUserIdByUsername);
     }
 
     private Boolean loadHasProductType(UserOfKey key) {
@@ -106,10 +120,45 @@ public class TransactionsRepository {
         );
     }
 
+    private Optional<UserModel> loadGetUserIdByUsername(UserKey key) {
+        log.info("Was invoked method loadGetUserIdByUsername for username = {} in TransactionRepository", key.username());
+
+        List<UserModel> users = jdbcTemplate.query(
+                """
+                        SELECT u.ID,
+                               u.FIRST_NAME,
+                               u.LAST_NAME
+                        FROM USERS u
+                        WHERE u.USERNAME = ?
+                        """,
+                (rs, rowNum) -> UserModel.builder()
+                        .id(rs.getObject("ID", UUID.class))
+                        .firstName(rs.getString("FIRST_NAME"))
+                        .lastName(rs.getString("LAST_NAME"))
+                        .build(),
+                key.username()
+        );
+
+        if (users.isEmpty()) {
+            log.warn("User with username {} not found in USERS", key.username());
+            return Optional.empty();
+        }
+
+        if (users.size() > 1) {
+            log.error("Found {} users with same username {} in USERS", users.size(), key.username());
+            return Optional.empty();
+        }
+
+        return Optional.of(users.get(0));
+    }
+
     public record UserOfKey(UUID userId, ProductTypeEnum productType) {
     }
 
     public record AmountOfProductKey(UUID userId, ProductTypeEnum productType, TransactionTypeEnum transactionType) {
+    }
+
+    public record UserKey(String username) {
     }
 
 }

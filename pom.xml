@@ -159,6 +159,12 @@
             <artifactId>caffeine</artifactId>
             <version>3.2.3</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.github.pengrad</groupId>
+            <artifactId>java-telegram-bot-api</artifactId>
+            <version>9.2.0</version>
+        </dependency>
     </dependencies>
 
 </project>
