@@ -8,8 +8,10 @@ import ru.timofeev.recservice.component.mapper.RecommendationMapper;
 import ru.timofeev.recservice.component.rule.RecommendationRule;
 import ru.timofeev.recservice.dto.recommendations.GetRecommendationResponseDto;
 import ru.timofeev.recservice.dto.recommendations.RecommendationDto;
+import ru.timofeev.recservice.model.UserModel;
 import ru.timofeev.recservice.model.enums.RecommendationRuleType;
 import ru.timofeev.recservice.repository.RecommendationsRepository;
+import ru.timofeev.recservice.repository.TransactionsRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,10 +25,11 @@ public class RecommendationProductsService {
 
     private final List<RecommendationRule> rules;
     private final RecommendationsRepository recommendationsRepository;
+    private final TransactionsRepository transactionsRepository;
     private final RecommendationMapper recommendationMapper;
     private final RuleSetEvaluator ruleSetEvaluator;
 
-    public GetRecommendationResponseDto getRecommendations(UUID userId) {
+    public List<RecommendationDto> getRecommendations(UUID userId) {
         log.info("Was invoked method for get recommendations for userId = {}", userId);
 
         log.info("Try to get static recommendations for userId = {}", userId);
@@ -48,11 +51,19 @@ public class RecommendationProductsService {
                         .toList();
 
         log.info("Merge all recommendations for userId = {}", userId);
-        List<RecommendationDto> allRecommendations = Stream.concat(staticRecommendations.stream(), dynamicRecommendations.stream()).toList();
+        return Stream.concat(staticRecommendations.stream(), dynamicRecommendations.stream()).toList();
+    }
 
+    public GetRecommendationResponseDto getRecommendationsResponseDto(UUID userId) {
+        log.info("Was invoked method for prepare GetRecommendationResponseDto for userId = {}", userId);
         return GetRecommendationResponseDto.builder()
                 .userId(userId)
-                .recommendations(allRecommendations)
+                .recommendations(getRecommendations(userId))
                 .build();
+    }
+
+    public Optional<UserModel> getUserByUsername(String username) {
+        log.info("Was invoked method for get user data  by username = {}", username);
+        return transactionsRepository.getUserByUsername(username);
     }
 }

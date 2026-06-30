@@ -23,6 +23,6 @@ public class RecommendationController {
     @Operation(summary = "Получить все рекомендации для пользователя")
     @ApiResponse(responseCode = "200", description = "Список получен")
     public ResponseEntity<GetRecommendationResponseDto> get(@RequestParam UUID userId) {
-        return ResponseEntity.ok(recommendationProductsService.getRecommendations(userId));
+        return ResponseEntity.ok(recommendationProductsService.getRecommendationsResponseDto(userId));
     }
 }
