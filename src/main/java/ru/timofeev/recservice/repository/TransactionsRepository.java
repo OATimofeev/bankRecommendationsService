@@ -152,6 +152,13 @@ public class TransactionsRepository {
         return Optional.of(users.get(0));
     }
 
+    public void invalidateAllCaches() {
+        hasProductTypeCache.invalidateAll();
+        isActiveUserOfProductTypeCache.invalidateAll();
+        amountForProductCache.invalidateAll();
+        getUserIdCache.invalidateAll();
+    }
+
     public record UserOfKey(UUID userId, ProductTypeEnum productType) {
     }
 

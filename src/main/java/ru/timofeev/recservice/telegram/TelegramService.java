@@ -5,7 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.timofeev.recservice.model.UserModel;
-import ru.timofeev.recservice.service.RecommendationProductsService;
+import ru.timofeev.recservice.service.RecommendationService;
+import ru.timofeev.recservice.service.TransactionDataService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +20,8 @@ import java.util.stream.Stream;
 @AllArgsConstructor
 public class TelegramService {
 
-    private RecommendationProductsService recommendationProductsService;
+    private RecommendationService recommendationService;
+    private TransactionDataService transactionDataService;
 
     public List<SendMessage> getUser(Long chatId, String text) {
         log.info("Parse username from chatId = '{}' with message = '{}'", chatId, text);
@@ -31,7 +33,7 @@ public class TelegramService {
         }
         String username = matcher.group(1);
 
-        Optional<UserModel> userModelOpt = recommendationProductsService.getUserByUsername(username);
+        Optional<UserModel> userModelOpt = transactionDataService.getUserByUsername(username);
         if (userModelOpt.isEmpty()) {
             log.info("Not found correct user with username = '{}', return error message", username);
             return List.of(TelegramMessageProvider.getUserNotFoundMessage(chatId));
@@ -41,7 +43,7 @@ public class TelegramService {
 
         List<SendMessage> messageList = Stream.concat(
                 Stream.of(TelegramMessageProvider.getHelloUserMessage(chatId, userModelOpt.get())),
-                recommendationProductsService.getRecommendations(userModelOpt.get().getId())
+                recommendationService.getRecommendations(userModelOpt.get().getId())
                         .stream()
                         .map(x -> TelegramMessageProvider.getRecommendationMessage(chatId, x))
         ).collect(Collectors.toCollection(ArrayList::new));

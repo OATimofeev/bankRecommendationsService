@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.timofeev.recservice.dto.recommendations.GetRecommendationResponseDto;
-import ru.timofeev.recservice.service.RecommendationProductsService;
+import ru.timofeev.recservice.service.RecommendationService;
 
 import java.util.UUID;
 
@@ -16,13 +16,13 @@ import java.util.UUID;
 @AllArgsConstructor
 public class RecommendationController {
 
-    private final RecommendationProductsService recommendationProductsService;
+    private final RecommendationService recommendationService;
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Получить все рекомендации для пользователя")
     @ApiResponse(responseCode = "200", description = "Список получен")
     public ResponseEntity<GetRecommendationResponseDto> get(@RequestParam UUID userId) {
-        return ResponseEntity.ok(recommendationProductsService.getRecommendationsResponseDto(userId));
+        return ResponseEntity.ok(recommendationService.getRecommendationsResponseDto(userId));
     }
 }
