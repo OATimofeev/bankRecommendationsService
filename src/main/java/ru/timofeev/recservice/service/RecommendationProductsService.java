@@ -8,8 +8,10 @@ import ru.timofeev.recservice.component.mapper.RecommendationMapper;
 import ru.timofeev.recservice.component.rule.RecommendationRule;
 import ru.timofeev.recservice.dto.recommendations.GetRecommendationResponseDto;
 import ru.timofeev.recservice.dto.recommendations.RecommendationDto;
+import ru.timofeev.recservice.model.RecommendationModel;
 import ru.timofeev.recservice.model.UserModel;
 import ru.timofeev.recservice.model.enums.RecommendationRuleType;
+import ru.timofeev.recservice.model.enums.StatNameEnum;
 import ru.timofeev.recservice.repository.RecommendationsRepository;
 import ru.timofeev.recservice.repository.TransactionsRepository;
 
@@ -29,29 +31,35 @@ public class RecommendationProductsService {
     private final RecommendationMapper recommendationMapper;
     private final RuleSetEvaluator ruleSetEvaluator;
 
+    private final RuleStatService ruleStatService;
+
     public List<RecommendationDto> getRecommendations(UUID userId) {
         log.info("Was invoked method for get recommendations for userId = {}", userId);
 
         log.info("Try to get static recommendations for userId = {}", userId);
-        List<RecommendationDto> staticRecommendations = rules.stream()
+        List<RecommendationModel> staticRecommendations = rules.stream()
                 .map(rule -> rule.apply(userId))
                 .flatMap(Optional::stream)
                 .map(recommendationsRepository::findById)
                 .flatMap(Optional::stream)
-                .map(recommendationMapper::getRecommendationDtoFromModel)
                 .toList();
 
         log.info("Try to get dynamic recommendations for userId = {}", userId);
-        List<RecommendationDto> dynamicRecommendations =
+        List<RecommendationModel> dynamicRecommendations =
                 recommendationsRepository
                         .findAllByRuleType(RecommendationRuleType.DYNAMIC)
                         .stream()
                         .filter(x -> ruleSetEvaluator.evaluate(userId, x.getRuleSet()))
-                        .map(recommendationMapper::getRecommendationDtoFromModel)
                         .toList();
 
         log.info("Merge all recommendations for userId = {}", userId);
-        return Stream.concat(staticRecommendations.stream(), dynamicRecommendations.stream()).toList();
+        List<RecommendationModel> result = Stream.concat(staticRecommendations.stream(), dynamicRecommendations.stream()).toList();
+        ruleStatService.incrementStat(result, StatNameEnum.TRIGGERED);
+
+        return result
+                .stream()
+                .map(recommendationMapper::getRecommendationDtoFromModel)
+                .toList();
     }
 
     public GetRecommendationResponseDto getRecommendationsResponseDto(UUID userId) {

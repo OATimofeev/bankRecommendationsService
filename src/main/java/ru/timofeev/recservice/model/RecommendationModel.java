@@ -44,4 +44,7 @@ public class RecommendationModel {
     @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(name = "RULE_TYPE", nullable = false)
     private RecommendationRuleType ruleType;
+
+    @OneToMany(mappedBy = "rule")
+    private List<RuleStatModel> stats;
 }

@@ -114,3 +114,25 @@ ALTER TABLE recommendations
 UPDATE recommendations
 SET rule_set = '[]'
 WHERE rule_type = 'STATIC';
+
+-- changeset OATimofeev:008-add-rule_stat-table
+CREATE TABLE rule_stat
+(
+    id        UUID PRIMARY KEY,
+    rule_id   BIGINT       NOT NULL,
+    counter   BIGINT       NOT NULL DEFAULT 0,
+    stat_name VARCHAR(100) NOT NULL,
+    CONSTRAINT fk_rule_stat_recommendation
+        FOREIGN KEY (rule_id) REFERENCES recommendations (id),
+    CONSTRAINT uq_rule_stat_rule_id_stat_name
+        UNIQUE (rule_id, stat_name)
+);
+
+-- changeset OATimofeev:009-init-rule-stat-for-existing-recommendations
+INSERT INTO rule_stat (id, rule_id, counter, stat_name)
+SELECT gen_random_uuid(), r.id, 0, 'TRIGGERED'
+FROM recommendations r
+WHERE NOT EXISTS (SELECT 1
+                  FROM rule_stat rs
+                  WHERE rs.rule_id = r.id
+                    AND rs.stat_name = 'TRIGGERED');
