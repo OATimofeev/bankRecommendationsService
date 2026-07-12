@@ -9,7 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.timofeev.recservice.dto.rule.GetRuleResponseDto;
 import ru.timofeev.recservice.dto.rule.ProductDto;
+import ru.timofeev.recservice.dto.rule.RuleStatsDto;
 import ru.timofeev.recservice.service.RecommendationRuleService;
+import ru.timofeev.recservice.service.RuleStatService;
 
 import java.net.HttpURLConnection;
 import java.util.UUID;
@@ -20,6 +22,7 @@ import java.util.UUID;
 public class RuleController {
 
     private final RecommendationRuleService recommendationRuleService;
+    private final RuleStatService ruleStatService;
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
@@ -48,5 +51,13 @@ public class RuleController {
     public ResponseEntity delete(@PathVariable UUID productId) {
         recommendationRuleService.delete(productId);
         return ResponseEntity.status(HttpURLConnection.HTTP_NO_CONTENT).build();
+    }
+
+    @GetMapping("/stats")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Получить статистику срабатывания правил")
+    @ApiResponse(responseCode = "200", description = "Список получен")
+    public ResponseEntity<RuleStatsDto> getRuleStats() {
+        return ResponseEntity.ok(ruleStatService.getAll());
     }
 }
