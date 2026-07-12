@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.timofeev.recservice.dto.rule.GetRuleResponseDto;
 import ru.timofeev.recservice.dto.rule.ProductDto;
 import ru.timofeev.recservice.dto.rule.RuleStatsDto;
-import ru.timofeev.recservice.service.RecommendationRuleService;
+import ru.timofeev.recservice.service.RecommendationService;
 import ru.timofeev.recservice.service.RuleStatService;
 
 import java.net.HttpURLConnection;
@@ -21,7 +21,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class RuleController {
 
-    private final RecommendationRuleService recommendationRuleService;
+    private final RecommendationService recommendationService;
     private final RuleStatService ruleStatService;
 
     @GetMapping
@@ -29,7 +29,7 @@ public class RuleController {
     @Operation(summary = "Получить все динамические продукты")
     @ApiResponse(responseCode = "200", description = "Список получен")
     public ResponseEntity<GetRuleResponseDto> get() {
-        return ResponseEntity.ok(recommendationRuleService.getAllDynamicRecs());
+        return ResponseEntity.ok(recommendationService.getAllDynamicRecs());
     }
 
     @PostMapping
@@ -41,7 +41,7 @@ public class RuleController {
     })
     @ApiResponse(responseCode = "204", description = "Правило успешно удалено")
     public ResponseEntity<ProductDto> post(@RequestBody ProductDto productDto) {
-        return ResponseEntity.ok(recommendationRuleService.create(productDto));
+        return ResponseEntity.ok(recommendationService.create(productDto));
     }
 
     @DeleteMapping("{productId}")
@@ -49,7 +49,7 @@ public class RuleController {
     @Operation(summary = "Удалить продукт по productId")
     @ApiResponse(responseCode = "204", description = "Продукт успешно удалено")
     public ResponseEntity delete(@PathVariable UUID productId) {
-        recommendationRuleService.delete(productId);
+        recommendationService.delete(productId);
         return ResponseEntity.status(HttpURLConnection.HTTP_NO_CONTENT).build();
     }
 
