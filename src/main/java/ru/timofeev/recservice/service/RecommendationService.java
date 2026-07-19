@@ -19,6 +19,13 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+/**
+ * Сервис для работы с рекомендациями банковских продуктов.
+ * <p>
+ * Отвечает за получение рекомендаций по пользователю, управление
+ * динамическими правилами рекомендаций и обновление статистики
+ * срабатывания правил.
+ */
 @Service
 @Slf4j
 @AllArgsConstructor
@@ -29,6 +36,17 @@ public class RecommendationService {
     private final RuleStatService ruleStatService;
     private final TransactionDataService transactionDataService;
 
+    /**
+     * Возвращает список рекомендаций для указанного пользователя.
+     * <p>
+     * 1. Вычисляет статические рекомендации на основе правил первого ТЗ.<br>
+     * 2. Получает динамические рекомендации на основе JSON‑правил.<br>
+     * 3. Объединяет оба списка, обновляет статистику срабатываний и
+     * маппит модели в DTO.
+     *
+     * @param userId идентификатор пользователя
+     * @return список DTO с рекомендациями
+     */
     public List<RecommendationDto> getRecommendations(UUID userId) {
         log.info("Was invoked method for get recommendations for userId = {}", userId);
 
@@ -53,6 +71,14 @@ public class RecommendationService {
                 .toList();
     }
 
+    /**
+     * Возвращает DTO-обёртку с рекомендациями для пользователя.
+     * <p>
+     * Содержит идентификатор пользователя и список рекомендаций.
+     *
+     * @param userId идентификатор пользователя
+     * @return DTO с рекомендациями и userId
+     */
     public GetRecommendationResponseDto getRecommendationsResponseDto(UUID userId) {
         log.info("Was invoked method for prepare GetRecommendationResponseDto for userId = {}", userId);
         return GetRecommendationResponseDto.builder()
@@ -61,6 +87,11 @@ public class RecommendationService {
                 .build();
     }
 
+    /**
+     * Возвращает список всех динамических правил рекомендаций.
+     *
+     * @return DTO с данными по динамическим рекомендациям
+     */
     public GetRuleResponseDto getAllDynamicRecs() {
         log.info("Was invoked method for get all DYNAMIC recommendations");
         return GetRuleResponseDto.builder()
@@ -72,6 +103,15 @@ public class RecommendationService {
                 .build();
     }
 
+    /**
+     * Создаёт новое динамическое правило рекомендации.
+     * <p>
+     * Очищает идентификатор в DTO, сохраняет правило, создаёт начальную
+     * запись статистики и возвращает сохранённое правило в виде DTO.
+     *
+     * @param product DTO с данными правила
+     * @return созданное правило в виде DTO
+     */
     @Transactional
     public ProductDto create(ProductDto product) {
         log.info("Was invoked method for create new recommendation product for product id = {}", product.getProductId());
@@ -82,6 +122,14 @@ public class RecommendationService {
         return recommendationMapper.getProductDtoFromModel(createdRule);
     }
 
+    /**
+     * Удаляет динамическое правило рекомендации по идентификатору продукта.
+     * <p>
+     * При наличии правила сначала удаляет связанную статистику,
+     * затем само правило.
+     *
+     * @param productId идентификатор продукта
+     */
     @Transactional
     public void delete(UUID productId) {
         recommendationsRepository.findByProductIdAndRuleType(productId, RecommendationRuleType.DYNAMIC)
