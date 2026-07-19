@@ -15,6 +15,13 @@ import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Сервис обработки Telegram‑сообщений для выдачи рекомендаций.
+ * <p>
+ * Разбирает входящие сообщения, извлекает из них username,
+ * находит пользователя и формирует набор ответных сообщений.
+ */
+
 @Service
 @Slf4j
 @AllArgsConstructor
@@ -23,6 +30,18 @@ public class TelegramService {
     private RecommendationService recommendationService;
     private TransactionDataService transactionDataService;
 
+    /**
+     * Обрабатывает входящее сообщение и подготавливает ответы для Telegram.
+     * <p>
+     * 1. Пытается распарсить username из текста с помощью {@link MessagePattern#RECOMMEND_PATTERN}.<br>
+     * 2. Если формат сообщения некорректен — возвращает сообщение об ошибке.<br>
+     * 3. Если пользователь с таким username не найден — возвращает сообщение о ненайденном пользователе.<br>
+     * 4. Если пользователь найден — формирует приветствие и сообщения с рекомендациями.
+     *
+     * @param chatId идентификатор чата Telegram
+     * @param text   текст входящего сообщения
+     * @return список сообщений, которые нужно отправить пользователю
+     */
     public List<SendMessage> getUser(Long chatId, String text) {
         log.info("Parse username from chatId = '{}' with message = '{}'", chatId, text);
 

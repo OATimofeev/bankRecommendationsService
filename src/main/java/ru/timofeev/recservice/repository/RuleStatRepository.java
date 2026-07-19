@@ -7,8 +7,22 @@ import org.springframework.data.repository.query.Param;
 import ru.timofeev.recservice.model.RuleStatModel;
 import ru.timofeev.recservice.model.enums.StatNameEnum;
 
-public interface RuleStatRepository extends JpaRepository<RuleStatModel, Long> {
+import java.util.UUID;
 
+/**
+ * Репозиторий для работы со статистикой срабатывания правил рекомендаций.
+ * <p>
+ * Позволяет инкрементировать счётчик статистики и удалять записи
+ * по идентификатору связанного правила.
+ */
+public interface RuleStatRepository extends JpaRepository<RuleStatModel, UUID> {
+
+    /**
+     * Увеличивает счётчик статистики на 1 для указанного правила и типа статистики.
+     *
+     * @param ruleId   идентификатор правила рекомендации
+     * @param statName тип статистики
+     */
     @Modifying
     @Query("""
             update RuleStatModel rs
@@ -19,4 +33,15 @@ public interface RuleStatRepository extends JpaRepository<RuleStatModel, Long> {
     void incrementCounterByRuleIdAndStatName(@Param("ruleId") Long ruleId,
                                              @Param("statName") StatNameEnum statName);
 
+    /**
+     * Удаляет все записи статистики для указанного правила рекомендации.
+     *
+     * @param ruleId идентификатор правила рекомендации
+     */
+    @Modifying
+    @Query("""
+            delete from RuleStatModel rs
+            where rs.rule.id = :ruleId
+            """)
+    void deleteByRuleId(@Param("ruleId") Long ruleId);
 }
